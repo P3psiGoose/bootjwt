@@ -6,6 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import de.goose.jwtwithboot.domain.MyRole;
 import de.goose.jwtwithboot.domain.MyUser;
@@ -18,10 +20,15 @@ public class JwtwithbootApplication {
 		SpringApplication.run(JwtwithbootApplication.class, args);
 	}
 
-	private static final String ROLE_USER = "ROLE_USER";
-	private static final String ROLE_MANAGER = "ROLE_MANAGER";
-	private static final String ROLE_ADMIN = "ROLE_ADMIN";
-	private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+	public static final String ROLE_USER = "ROLE_USER";
+	public static final String ROLE_MANAGER = "ROLE_MANAGER";
+	public static final String ROLE_ADMIN = "ROLE_ADMIN";
+	public static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+
+	@Bean
+	PasswordEncoder passwortEncoder() {
+		return new BCryptPasswordEncoder(); // using standard is ok
+	}
 
 	@Bean
 	CommandLineRunner run(MyUserService userService) {

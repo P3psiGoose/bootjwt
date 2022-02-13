@@ -1,9 +1,17 @@
 package de.goose.jwtwithboot.service;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import de.goose.jwtwithboot.domain.MyRole;
@@ -17,14 +25,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
-public class MyUserServiceImpl implements MyUserService {
+public class MyUserServiceImpl implements MyUserService, UserDetailsService {
 
 	private final MyUserRepository userRepository;
 	private final MyRoleRepository roleRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	@Override
 	public MyUser saveUser(MyUser user) {
 		log.info("Saving new User to Database {}", user.getName());
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
+
 		return userRepository.save(user);
 	}
 
@@ -54,6 +65,21 @@ public class MyUserServiceImpl implements MyUserService {
 	public List<MyUser> getAllUsers() {
 		log.info("Fetching all users from Database");
 		return userRepository.findAll();
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		MyUser user = userRepository.findByUserName(username);
+		if (user == null) {
+			log.error("User not found: {}", username);
+		} else {
+			log.info("User found: {}", username);
+		}
+
+		Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+		user.getRoles().stream().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+
+		return new User(user.getUserName(), user.getPassword(), authorities);
 	}
 
 }
