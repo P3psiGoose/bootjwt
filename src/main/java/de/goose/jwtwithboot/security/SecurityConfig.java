@@ -11,9 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import de.goose.jwtwithboot.JwtwithbootApplication;
 import de.goose.jwtwithboot.security.filter.CustomAuthenticationFilter;
+import de.goose.jwtwithboot.security.filter.CustomAuthorisationFilter;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -48,11 +50,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		http.csrf().disable();
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		http.authorizeRequests().antMatchers("/api/login/**").permitAll(); // particular on the top
+		http.authorizeRequests().antMatchers("/api/login/**", "/api/token/refresh/**").permitAll(); // particular on the top
 		http.authorizeRequests().antMatchers(HttpMethod.GET, "/api/user/**").hasAnyAuthority(JwtwithbootApplication.ROLE_USER);
 		http.authorizeRequests().antMatchers(HttpMethod.POST, "/api/user/save/**").hasAnyAuthority(JwtwithbootApplication.ROLE_ADMIN);
 		http.authorizeRequests().anyRequest().authenticated(); // common on the bottom
 		http.addFilter(filter);
+		http.addFilterBefore(new CustomAuthorisationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
 
 }
